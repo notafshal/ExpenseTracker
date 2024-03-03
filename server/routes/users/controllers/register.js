@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const jwtManager = require("../../../managers/jwtManager");
 
 const register = async (req, res) => {
   const userModel = mongoose.model("users");
@@ -15,14 +17,16 @@ const register = async (req, res) => {
 
   if (getDuplicateEmail) throw "this email exists";
   const hashedPassword = await bcrypt.hash(password, 12);
-  await userModel.create({
+  const createdUser = await userModel.create({
     name: name,
     email: email,
     password: hashedPassword,
     balance: balance,
   });
+  const accessToken = jwtManager(createdUser);
   res.status(200).json({
     message: "User Registered Successfully",
+    accessToken: accessToken,
   });
 };
 module.exports = register;
